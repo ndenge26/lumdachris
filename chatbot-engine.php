@@ -23,7 +23,34 @@ function chatbotListings(): array
 {
     static $listings = null;
     if ($listings === null) {
-        $listings = require __DIR__ . '/data/listings.php';
+        require __DIR__ . '/config.php';
+        $statement = $pdo->query(
+            'SELECT id, listing_type, property_type, title, city, location_details, price_xaf, dimensions_sqm, bedrooms, certificate_status '
+            . 'FROM listings WHERE is_active = 1 ORDER BY created_at DESC'
+        );
+        $certificateLabels = [
+            'verified' => 'Certificate verified',
+            'pending' => 'Certificate under review',
+            'rejected' => 'Certificate not verified',
+            'not_submitted' => 'Certificate not submitted',
+        ];
+        $listings = [];
+        foreach ($statement->fetchAll() as $record) {
+            $isRental = in_array($record['listing_type'], ['lease', 'tenancy'], true);
+            $bedrooms = $record['bedrooms'] === null ? null : (int) $record['bedrooms'];
+            $listings[] = [
+                'title' => (string) $record['title'],
+                'city' => (string) $record['city'],
+                'neighborhood' => trim((string) $record['city'] . (!empty($record['location_details']) ? ', ' . $record['location_details'] : '')),
+                'transaction' => $isRental ? 'lease' : 'buy',
+                'property' => (string) $record['property_type'],
+                'price' => (int) $record['price_xaf'],
+                'size' => $record['property_type'] === 'land'
+                    ? number_format((float) $record['dimensions_sqm'], 2, '.', ',') . ' m²'
+                    : ($bedrooms === null ? number_format((float) $record['dimensions_sqm'], 2, '.', ',') . ' m²' : $bedrooms . ' bedrooms'),
+                'certificate' => $certificateLabels[$record['certificate_status']] ?? 'Certificate not submitted',
+            ];
+        }
     }
     return $listings;
 }
@@ -166,7 +193,9 @@ function chatbotExtractSlots(string $normalized): array
 
     if (preg_match('/\b(land|plot|plots|parcel|parcelle|terrain|terrains|hectare|hectares)\b/', $normalized) === 1) {
         $slots['property'] = 'land';
-    } elseif (preg_match('/\b(apartment|apartments|flat|house|home|studio|villa|appartement|appartements|maison|logement)\b/', $normalized) === 1) {
+    } elseif (preg_match('/\b(house|houses|home|homes|maison|maisons|villa|villas)\b/', $normalized) === 1) {
+        $slots['property'] = 'house';
+    } elseif (preg_match('/\b(apartment|apartments|flat|studio|appartement|appartements|logement)\b/', $normalized) === 1) {
         $slots['property'] = 'apartment';
     }
 
@@ -260,7 +289,9 @@ function chatbotFormatListing(array $listing, string $language): string
 {
     $type = $listing['property'] === 'land'
         ? ($language === 'fr' ? 'terrain' : 'land')
-        : ($language === 'fr' ? 'appartement' : 'apartment');
+        : ($listing['property'] === 'house'
+            ? ($language === 'fr' ? 'maison' : 'house')
+            : ($language === 'fr' ? 'appartement' : 'apartment'));
     $deal = $listing['transaction'] === 'lease'
         ? ($language === 'fr' ? 'en location' : 'for lease')
         : ($language === 'fr' ? 'à vendre' : 'for sale');
@@ -269,6 +300,8 @@ function chatbotFormatListing(array $listing, string $language): string
         'Certificate verified' => $language === 'fr' ? 'certificat vérifié' : 'certificate verified',
         'Title documents verified' => $language === 'fr' ? 'documents du titre vérifiés' : 'title documents verified',
         'Certificate under review' => $language === 'fr' ? 'certificat en cours de vérification' : 'certificate under review',
+        'Certificate not verified' => $language === 'fr' ? 'certificat non vérifié' : 'certificate not verified',
+        'Certificate not submitted' => $language === 'fr' ? 'certificat non fourni' : 'certificate not submitted',
     ][$listing['certificate']] ?? $listing['certificate'];
 
     return '• ' . $listing['title'] . ' — ' . $listing['neighborhood'] . ' · ' . $type . ' ' . $deal . ', ' . $listing['size'] . ', ' . $price . ' (' . $certificate . ')';
@@ -281,12 +314,12 @@ function chatbotListingIntro(array $slots, string $language): string
     $transaction = $slots['transaction'] ?? '';
 
     if ($language === 'fr') {
-        $what = $property === 'land' ? 'terrains' : ($property === 'apartment' ? 'appartements' : 'biens');
+        $what = $property === 'land' ? 'terrains' : ($property === 'house' ? 'maisons' : ($property === 'apartment' ? 'appartements' : 'biens'));
         $deal = $transaction === 'buy' ? 'à vendre' : ($transaction === 'lease' ? 'en location' : '');
         return 'Voici les ' . $what . ($deal !== '' ? ' ' . $deal : '') . ($city !== '' ? ' à ' . $city : '') . ' :';
     }
 
-    $what = $property === 'land' ? 'land plots' : ($property === 'apartment' ? 'apartments' : 'properties');
+    $what = $property === 'land' ? 'land plots' : ($property === 'house' ? 'houses' : ($property === 'apartment' ? 'apartments' : 'properties'));
     $deal = $transaction === 'buy' ? 'for sale' : ($transaction === 'lease' ? 'for lease' : '');
     return 'Here are the ' . $what . ($deal !== '' ? ' ' . $deal : '') . ($city !== '' ? ' in ' . $city : '') . ':';
 }
@@ -294,8 +327,8 @@ function chatbotListingIntro(array $slots, string $language): string
 function chatbotListingNote(string $language): string
 {
     return $language === 'fr'
-        ? 'Ce sont des annonces illustratives : confirmez le prix, les documents et les limites avant de vous engager.'
-        : 'These are illustrative listings, so confirm the price, documents and boundaries before you commit.';
+        ? 'Confirmez directement le prix, les documents et les limites avant de vous engager.'
+        : 'Confirm the price, documents and boundaries directly before you commit.';
 }
 
 function chatbotListingSuggestions(string $language, bool $hasMore): array
@@ -414,7 +447,9 @@ function chatbotListingDetailReply(array $listing, string $language): array
 {
     $type = $listing['property'] === 'land'
         ? ($language === 'fr' ? 'Terrain' : 'Land')
-        : ($language === 'fr' ? 'Appartement' : 'Apartment');
+        : ($listing['property'] === 'house'
+            ? ($language === 'fr' ? 'Maison' : 'House')
+            : ($language === 'fr' ? 'Appartement' : 'Apartment'));
     $deal = $listing['transaction'] === 'lease'
         ? ($language === 'fr' ? 'en location' : 'for lease')
         : ($language === 'fr' ? 'à vendre' : 'for sale');
@@ -423,6 +458,8 @@ function chatbotListingDetailReply(array $listing, string $language): array
         'Certificate verified' => $language === 'fr' ? 'certificat vérifié' : 'certificate verified',
         'Title documents verified' => $language === 'fr' ? 'documents du titre vérifiés' : 'title documents verified',
         'Certificate under review' => $language === 'fr' ? 'certificat en cours de vérification' : 'certificate under review',
+        'Certificate not verified' => $language === 'fr' ? 'certificat non vérifié' : 'certificate not verified',
+        'Certificate not submitted' => $language === 'fr' ? 'certificat non fourni' : 'certificate not submitted',
     ][$listing['certificate']] ?? $listing['certificate'];
 
     $reply = $language === 'fr'

@@ -26,6 +26,16 @@ function chatbotRespond(array $payload, int $status = 200): void
     exit;
 }
 
+function chatbotRunEngine(string $message, string $language, array $context): array
+{
+    try {
+        return chatbotEngineReply($message, $language, $context);
+    } catch (Throwable $exception) {
+        error_log('Assistant property lookup failed: ' . $exception->getMessage());
+        chatbotRespond(['error' => 'Property information is temporarily unavailable. Please try again later.'], 503);
+    }
+}
+
 function chatbotLeadPrompt(string $stage, string $language): string
 {
     $prompts = [
@@ -110,7 +120,7 @@ if (is_array($lead) && isset($lead['stage'], $lead['language'])) {
     $isQuestion = strpos($message, '?') !== false
         || preg_match('/^(what|how|why|where|when|who|can|do|does|is|are|quel|quelle|comment|pourquoi|quand|ou|qui|est ce)\b/', $normalizedMessage) === 1;
     if ($isQuestion) {
-        $result = chatbotEngineReply($message, $language, $_SESSION['chatbot_context'] ?? []);
+        $result = chatbotRunEngine($message, $language, $_SESSION['chatbot_context'] ?? []);
         $_SESSION['chatbot_context'] = $result['context'];
         chatbotRespond([
             'reply' => $result['reply'] . "\n\n" . chatbotLeadPrompt($lead['stage'], $language),
@@ -165,18 +175,41 @@ if (is_array($lead) && isset($lead['stage'], $lead['language'])) {
             ]);
         }
         $_SESSION['chatbot_lead']['budget_location'] = $message;
+        try {
+            require __DIR__ . '/config.php';
+            $leadStatement = $pdo->prepare(
+                'INSERT INTO chatbot_leads (full_name, phone, intent, budget_location, language) '
+                . 'VALUES (:full_name, :phone, :intent, :budget_location, :language)'
+            );
+            $leadStatement->execute([
+                ':full_name' => $_SESSION['chatbot_lead']['name'],
+                ':phone' => $_SESSION['chatbot_lead']['phone'],
+                ':intent' => $_SESSION['chatbot_lead']['intent'],
+                ':budget_location' => $message,
+                ':language' => $language,
+            ]);
+        } catch (Throwable $exception) {
+            error_log('Assistant agent hand-off could not be saved: ' . $exception->getMessage());
+            chatbotRespond([
+                'reply' => $language === 'fr'
+                    ? 'Je n’ai pas pu enregistrer votre demande pour le moment. Veuillez réessayer ou utiliser le formulaire de contact du site.'
+                    : 'I could not save your enquiry just now. Please try again or use the property request form on the website.',
+                'language' => $language,
+                'suggestions' => [chatbotCancelSuggestion($language)],
+            ], 503);
+        }
         unset($_SESSION['chatbot_lead']);
         chatbotRespond([
             'reply' => $language === 'fr'
-                ? 'Merci. Vos coordonnées et critères sont prêts pour une transmission simulée à un agent. Aucun agent n’a été contacté automatiquement ; pour une prise en charge réelle, envoyez vos coordonnées et un document via la page de vérification du site.'
-                : 'Thank you. Your contact details and criteria are ready for a simulated agent hand-off. No agent has been contacted automatically; for a real follow-up, send your details and a document through the due-diligence page on the site.',
+                ? 'Merci. Votre demande a été transmise à notre équipe immobilière. Un agent pourra vous recontacter.'
+                : 'Thank you. Your enquiry has been sent to our property team, and an agent can follow up with you.',
             'language' => $language,
             'suggestions' => chatbotDefaultSuggestions($language),
         ]);
     }
 }
 
-$result = chatbotEngineReply($message, $language, $_SESSION['chatbot_context'] ?? []);
+$result = chatbotRunEngine($message, $language, $_SESSION['chatbot_context'] ?? []);
 $_SESSION['chatbot_context'] = $result['context'];
 
 if (($result['action'] ?? null) === 'lead') {

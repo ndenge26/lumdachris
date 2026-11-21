@@ -17,12 +17,51 @@ if (!isset($_SESSION['chatbot_csrf_token'])) {
     $_SESSION['chatbot_csrf_token'] = bin2hex(random_bytes(32));
 }
 
-$listings = require __DIR__ . '/data/listings.php';
+$listings = [];
+try {
+    require __DIR__ . '/config.php';
+    $listingQuery = $pdo->query(
+        'SELECT id, listing_type, property_type, title, description, city, location_details, price_xaf, dimensions_sqm, bedrooms, certificate_status, '
+        . '(SELECT id FROM listing_images WHERE listing_id = listings.id ORDER BY id LIMIT 1) AS image_id '
+        . 'FROM listings WHERE is_active = 1 ORDER BY created_at DESC'
+    );
+    foreach ($listingQuery->fetchAll() as $record) {
+        $isRental = in_array($record['listing_type'], ['lease', 'tenancy'], true);
+        $certificateLabels = [
+            'verified' => 'Certificate verified',
+            'pending' => 'Certificate under review',
+            'rejected' => 'Certificate not verified',
+            'not_submitted' => 'Certificate not submitted',
+        ];
+        $location = trim((string) $record['city'] . (!empty($record['location_details']) ? ', ' . $record['location_details'] : ''));
+        $bedrooms = $record['bedrooms'] === null ? null : (int) $record['bedrooms'];
+        $listings[] = [
+            'title' => (string) $record['title'],
+            'city' => (string) $record['city'],
+            'neighborhood' => $location,
+            'transaction' => $isRental ? 'lease' : 'buy',
+            'transaction_label' => $isRental ? 'For rent' : 'For sale',
+            'property' => (string) $record['property_type'],
+            'price' => (int) $record['price_xaf'],
+            'size' => $record['property_type'] === 'land'
+                ? number_format((float) $record['dimensions_sqm'], 2, '.', ',') . ' m²'
+                : ($bedrooms === null ? number_format((float) $record['dimensions_sqm'], 2, '.', ',') . ' m²' : $bedrooms . ' bedrooms'),
+            'certificate' => $certificateLabels[$record['certificate_status']] ?? 'Certificate not submitted',
+            'image' => $record['image_id'] !== null ? 'listing-image.php?id=' . (int) $record['image_id'] : '',
+            'alt' => (string) $record['title'],
+            'description' => (string) ($record['description'] ?? ''),
+        ];
+    }
+} catch (Throwable $exception) {
+    error_log('Public listings query failed: ' . $exception->getMessage());
+}
 
+$availableCities = array_values(array_unique(array_column($listings, 'city')));
+sort($availableCities, SORT_NATURAL | SORT_FLAG_CASE);
 $filterOptions = [
     'transaction' => ['buy', 'lease'],
-    'location' => ['Yaounde', 'Douala', 'Kribi'],
-    'property' => ['land', 'apartment'],
+    'location' => $availableCities,
+    'property' => ['land', 'house', 'apartment'],
 ];
 
 $selected = [];
@@ -104,17 +143,18 @@ function h(string $value): string
                 <span class="field-label">In and around</span>
                 <select name="location" aria-label="Location">
                     <option value="">Any location</option>
-                    <option value="Yaounde" <?= $selected['location'] === 'Yaounde' ? 'selected' : '' ?>>Yaounde</option>
-                    <option value="Douala" <?= $selected['location'] === 'Douala' ? 'selected' : '' ?>>Douala</option>
-                    <option value="Kribi" <?= $selected['location'] === 'Kribi' ? 'selected' : '' ?>>Kribi</option>
+                    <?php foreach ($availableCities as $city): ?>
+                        <option value="<?= h($city) ?>" <?= $selected['location'] === $city ? 'selected' : '' ?>><?= h($city) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </label>
             <span class="field-divider" aria-hidden="true"></span>
             <label class="search-field">
                 <span class="field-label">Property type</span>
                 <select name="property" aria-label="Property type">
-                    <option value="">Land or apartment</option>
+                    <option value="">Land, house or apartment</option>
                     <option value="land" <?= $selected['property'] === 'land' ? 'selected' : '' ?>>Land</option>
+                    <option value="house" <?= $selected['property'] === 'house' ? 'selected' : '' ?>>House</option>
                     <option value="apartment" <?= $selected['property'] === 'apartment' ? 'selected' : '' ?>>Apartment</option>
                 </select>
             </label>
@@ -150,9 +190,9 @@ function h(string $value): string
                     <span>Location</span>
                     <select data-filter="city">
                         <option value="">All locations</option>
-                        <option value="Yaounde" <?= $selected['location'] === 'Yaounde' ? 'selected' : '' ?>>Yaounde</option>
-                        <option value="Douala" <?= $selected['location'] === 'Douala' ? 'selected' : '' ?>>Douala</option>
-                        <option value="Kribi" <?= $selected['location'] === 'Kribi' ? 'selected' : '' ?>>Kribi</option>
+                        <?php foreach ($availableCities as $city): ?>
+                            <option value="<?= h($city) ?>" <?= $selected['location'] === $city ? 'selected' : '' ?>><?= h($city) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </label>
                 <label class="sidebar-field">
@@ -160,6 +200,7 @@ function h(string $value): string
                     <select data-filter="category">
                         <option value="">All property types</option>
                         <option value="land" <?= $selected['property'] === 'land' ? 'selected' : '' ?>>Land</option>
+                        <option value="house" <?= $selected['property'] === 'house' ? 'selected' : '' ?>>House</option>
                         <option value="apartment" <?= $selected['property'] === 'apartment' ? 'selected' : '' ?>>Apartment</option>
                     </select>
                 </label>
@@ -178,13 +219,14 @@ function h(string $value): string
                 <?php foreach ($filteredListings as $index => $listing): ?>
                     <article class="listing-card" data-listing data-type="<?= $listing['transaction'] === 'buy' ? 'sale' : 'lease' ?>" data-city="<?= h($listing['city']) ?>" data-category="<?= h($listing['property']) ?>" data-certificate="<?= in_array($listing['certificate'], ['Certificate verified', 'Title documents verified'], true) ? 'true' : 'false' ?>" style="--card-index: <?= (int) $index ?>">
                         <a class="listing-image" href="#due-diligence" aria-label="Learn more about <?= h($listing['title']) ?>">
-                            <img src="https://images.unsplash.com/<?= h($listing['image']) ?>?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="<?= h($listing['alt']) ?>" loading="lazy">
+                            <img src="<?= $listing['image'] !== '' ? h($listing['image']) : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&amp;fit=crop&amp;w=900&amp;q=80' ?>" alt="<?= h($listing['alt']) ?>" loading="lazy">
                             <span class="listing-tag"><?= h($listing['transaction_label']) ?></span>
                             <span class="listing-arrow" aria-hidden="true">↗</span>
                         </a>
                         <div class="listing-body">
                             <div class="listing-location"><span class="location-dot" aria-hidden="true"></span><?= h($listing['neighborhood']) ?></div>
                             <h3><?= h($listing['title']) ?></h3>
+                            <?php if ($listing['description'] !== ''): ?><p class="listing-description"><?= h($listing['description']) ?></p><?php endif; ?>
                             <div class="listing-specs"><span><?= h(ucfirst($listing['property'])) ?></span><span><?= h($listing['size']) ?></span></div>
                             <div class="certificate <?= $listing['certificate'] === 'Certificate under review' ? 'certificate-review' : '' ?>">
                                 <span class="certificate-icon" aria-hidden="true"><?= $listing['certificate'] === 'Certificate under review' ? '!' : '✓' ?></span>
@@ -198,7 +240,7 @@ function h(string $value): string
                 <p class="listing-empty" id="listing-empty" hidden>No places match these filters. Try adjusting your selection.</p>
             </div>
         </div>
-        <p class="sample-note">Illustrative listings shown for demonstration. Confirm all prices, details, and documents independently.</p>
+        <p class="sample-note">Availability, prices, and document review status should be confirmed directly before a commitment.</p>
     </section>
 
     <section class="services-section" aria-label="Property support">
@@ -238,6 +280,7 @@ function h(string $value): string
             <a href="?transaction=lease#listings">Leases &amp; Tenancy</a>
             <a href="#due-diligence">Due Diligence</a>
             <a href="#dispute-resolution">Dispute Resolution</a>
+            <a href="admin.php">Agent sign in</a>
         </div>
     </div>
     <div class="footer-bottom"><span>© <?= date('Y') ?> Lumda Chris Cameroon</span><span>Au Cameroun, votre terrain, notre priorité.</span></div>

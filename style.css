@@ -628,6 +628,17 @@ select {
     line-height: 1.12;
 }
 
+.listing-description {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: -2px 0 12px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.55;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
 .listing-specs {
     padding-bottom: 14px;
     display: flex;

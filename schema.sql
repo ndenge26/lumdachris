@@ -16,13 +16,19 @@ CREATE TABLE listings (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     owner_user_id BIGINT UNSIGNED NOT NULL,
     listing_type ENUM('buy_land', 'sell_land', 'lease', 'tenancy') NOT NULL,
+    property_type ENUM('land', 'house', 'apartment') NOT NULL DEFAULT 'land',
     title VARCHAR(200) NOT NULL,
     description TEXT NULL,
     city VARCHAR(100) NOT NULL COMMENT 'Examples include Yaounde and Douala',
     location_details VARCHAR(255) NULL,
     price_xaf BIGINT UNSIGNED NOT NULL,
     dimensions_sqm DECIMAL(12, 2) UNSIGNED NOT NULL,
+    bedrooms SMALLINT UNSIGNED NULL,
     has_land_certificate BOOLEAN NOT NULL DEFAULT FALSE,
+    certificate_status ENUM('not_submitted', 'pending', 'verified', 'rejected') NOT NULL DEFAULT 'not_submitted',
+    certificate_original_name VARCHAR(180) NULL,
+    certificate_storage_name VARCHAR(80) NULL,
+    certificate_mime ENUM('application/pdf', 'image/jpeg') NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -32,6 +38,18 @@ CREATE TABLE listings (
     KEY idx_listings_active (is_active),
     CONSTRAINT fk_listings_owner FOREIGN KEY (owner_user_id)
         REFERENCES users (id) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE listing_images (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    listing_id BIGINT UNSIGNED NOT NULL,
+    storage_name VARCHAR(80) NOT NULL,
+    alt_text VARCHAR(200) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_listing_images_listing (listing_id),
+    CONSTRAINT fk_listing_images_listing FOREIGN KEY (listing_id)
+        REFERENCES listings (id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE services (
@@ -57,6 +75,19 @@ CREATE TABLE services (
         REFERENCES users (id) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE chatbot_leads (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(30) NOT NULL,
+    intent ENUM('buy', 'sell') NOT NULL,
+    budget_location VARCHAR(300) NOT NULL,
+    language ENUM('en', 'fr') NOT NULL DEFAULT 'en',
+    status ENUM('received', 'contacted', 'closed') NOT NULL DEFAULT 'received',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_chatbot_leads_status_created (status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE service_intakes (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     request_type ENUM('due_diligence', 'property_dispute') NOT NULL,
@@ -69,6 +100,7 @@ CREATE TABLE service_intakes (
     document_storage_name VARCHAR(80) NULL,
     document_mime ENUM('application/pdf', 'image/jpeg') NULL,
     document_size INT UNSIGNED NULL,
+    document_review_status ENUM('not_reviewed', 'verified', 'rejected') NOT NULL DEFAULT 'not_reviewed',
     status ENUM('received', 'in_review', 'resolved') NOT NULL DEFAULT 'received',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),

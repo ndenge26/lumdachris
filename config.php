@@ -10,7 +10,7 @@ if ($databasePassword === false) {
 }
 
 if ($databaseName === '' || $databaseUser === '') {
-    throw new RuntimeException('Database configuration is incomplete. Set DB_NAME, DB_USER, and DB_PASS.');
+    throw new RuntimeException('Database configuration is incomplete. Set DB_NAME, DB_USER, and DB_PASSWORD.');
 }
 
 $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $databaseHost, $databaseName);
