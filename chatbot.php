@@ -107,7 +107,7 @@ if (is_array($lead) && isset($lead['stage'], $lead['language'])) {
         ]);
     }
 
-    $isQuestion = str_contains($message, '?')
+    $isQuestion = strpos($message, '?') !== false
         || preg_match('/^(what|how|why|where|when|who|can|do|does|is|are|quel|quelle|comment|pourquoi|quand|ou|qui|est ce)\b/', $normalizedMessage) === 1;
     if ($isQuestion) {
         $result = chatbotEngineReply($message, $language, $_SESSION['chatbot_context'] ?? []);

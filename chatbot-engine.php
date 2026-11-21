@@ -99,11 +99,19 @@ function chatbotExtractBudget(string $normalized): ?array
     $value = null;
     if (preg_match('/([0-9]+(?:[.,][0-9]+)?)\s*(million|millions|milliard|milliards|m|k|thousand)\b/', $normalized, $match) === 1) {
         $number = (float) str_replace(',', '.', $match[1]);
-        $multiplier = match ($match[2]) {
-            'million', 'millions', 'm' => 1000000,
-            'milliard', 'milliards' => 1000000000,
-            default => 1000,
-        };
+        switch ($match[2]) {
+            case 'million':
+            case 'millions':
+            case 'm':
+                $multiplier = 1000000;
+                break;
+            case 'milliard':
+            case 'milliards':
+                $multiplier = 1000000000;
+                break;
+            default:
+                $multiplier = 1000;
+        }
         $value = (int) round($number * $multiplier);
     } elseif (preg_match('/\b([0-9][0-9\s.,]{4,})\b/', $normalized, $match) === 1) {
         $hasMoneyCue = preg_match('/\b(xaf|fcfa|cfa|francs?|prix|price|budget|cout|cost|combien|how much|afford|cheap|expensive)\b/', $normalized) === 1;

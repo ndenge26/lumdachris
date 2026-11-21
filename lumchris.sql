@@ -75,6 +75,31 @@ CREATE TABLE IF NOT EXISTS `services` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `service_intakes`
+--
+
+CREATE TABLE IF NOT EXISTS `service_intakes` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `request_type` enum('due_diligence','property_dispute') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `full_name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `property_location` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `issue_type` enum('boundary_dispute','certificate_verification','tenancy_issue') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `request_details` text COLLATE utf8mb4_unicode_ci,
+  `document_original_name` varchar(180) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `document_storage_name` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `document_mime` enum('application/pdf','image/jpeg') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `document_size` int(10) UNSIGNED DEFAULT NULL,
+  `status` enum('received','in_review','resolved') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'received',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_service_intakes_issue_status` (`issue_type`,`status`),
+  KEY `idx_service_intakes_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
