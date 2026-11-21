@@ -199,6 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			<p class="eyebrow eyebrow-dark"><span class="eyebrow-line"></span> Property support</p>
 			<h1 id="intake-title">Clarity before <em>the next step.</em></h1>
 			<p>Tell us what you need help with. A property specialist can review your request and follow up with you.</p>
+			<ol class="intake-steps">
+				<li>Share the property details and your document.</li>
+				<li>A property specialist reviews your request.</li>
+				<li>We follow up with you by phone.</li>
+			</ol>
 			<div class="intake-assurance"><span class="assurance-mark" aria-hidden="true">✓</span><span>Your documents are stored privately and reviewed only for this request.</span></div>
 		</section>
 
@@ -223,7 +228,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 			<form class="intake-form" action="due-diligence.php" method="post" enctype="multipart/form-data">
 				<input type="hidden" name="csrf_token" value="<?= intakeEscape($_SESSION['intake_csrf_token']) ?>">
-				<div class="intake-form-heading"><span>01 / YOUR REQUEST</span><p>Fields marked * are required.</p></div>
+				<div class="intake-form-heading">
+					<div>
+						<span>01 / YOUR REQUEST</span>
+						<h2>Request details</h2>
+					</div>
+					<p>Fields marked <b>*</b> are required.</p>
+				</div>
 
 				<div class="intake-fields">
 					<label class="intake-field" for="full-name">
@@ -232,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 					</label>
 					<label class="intake-field" for="phone">
 						<span>Phone number <b>*</b></span>
-						<input id="phone" name="phone" type="tel" maxlength="30" autocomplete="tel" required value="<?= intakeEscape($formValues['phone']) ?>" placeholder="+237 6XX XXX XXX">
+						<input id="phone" name="phone" type="tel" inputmode="tel" maxlength="30" autocomplete="tel" required value="<?= intakeEscape($formValues['phone']) ?>" placeholder="+237 6XX XXX XXX">
 					</label>
 					<label class="intake-field intake-field-wide" for="property-location">
 						<span>Location of the property <b>*</b></span>
@@ -247,11 +258,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 							<?php endforeach; ?>
 						</select>
 					</label>
-					<label class="intake-field intake-field-wide" for="land-document">
-						<span>Land document <b>*</b></span>
-						<input id="land-document" name="land_document" type="file" accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg" required>
-						<small>PDF or JPEG only. Maximum file size: 5 MB.</small>
-					</label>
+					<div class="intake-field intake-field-wide">
+						<label for="land-document">Land document <b>*</b></label>
+						<input id="land-document" name="land_document" type="file" accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg" aria-describedby="land-document-hint" required>
+						<small id="land-document-hint">PDF or JPEG only. Maximum file size: 5 MB.</small>
+					</div>
 				</div>
 
 				<button class="intake-submit" type="submit">Submit request <span aria-hidden="true">↗</span></button>
