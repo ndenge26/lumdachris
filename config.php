@@ -1,12 +1,15 @@
 <?php
 declare(strict_types=1);
 
-$databaseHost = getenv('localhost') ?: '127.0.0.1';
-$databaseName = getenv('lumchris');
-$databaseUser = getenv('root');
-$databasePassword = getenv('');
+$databaseHost = getenv('DB_HOST') ?: '127.0.0.1';
+$databaseName = getenv('DB_NAME') ?: 'lumchris';
+$databaseUser = getenv('DB_USER') ?: 'root';
+$databasePassword = getenv('DB_PASSWORD');
+if ($databasePassword === false) {
+    $databasePassword = '';
+}
 
-if ($databaseName === false || $databaseName === '' || $databaseUser === false || $databaseUser === '' || $databasePassword === false) {
+if ($databaseName === '' || $databaseUser === '') {
     throw new RuntimeException('Database configuration is incomplete. Set DB_NAME, DB_USER, and DB_PASS.');
 }
 

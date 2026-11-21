@@ -17,92 +17,7 @@ if (!isset($_SESSION['chatbot_csrf_token'])) {
     $_SESSION['chatbot_csrf_token'] = bin2hex(random_bytes(32));
 }
 
-$listings = [
-    [
-        'title' => 'A quiet parcel in Bastos',
-        'city' => 'Yaounde',
-        'city_label' => 'Yaounde',
-        'neighborhood' => 'Bastos, Centre Region',
-        'transaction' => 'buy',
-        'transaction_label' => 'For sale',
-        'property' => 'land',
-        'price' => 48500000,
-        'size' => '1,200 m2',
-        'certificate' => 'Certificate verified',
-        'image' => 'photo-1500382017468-9049fed747ef',
-        'alt' => 'Open green land under a bright sky',
-    ],
-    [
-        'title' => 'Light-filled apartment near the coast',
-        'city' => 'Douala',
-        'city_label' => 'Douala',
-        'neighborhood' => 'Bonapriso, Littoral Region',
-        'transaction' => 'lease',
-        'transaction_label' => 'For lease',
-        'property' => 'apartment',
-        'price' => 650000,
-        'size' => '3 bedrooms',
-        'certificate' => 'Title documents verified',
-        'image' => 'photo-1600607687939-ce8a6c25118c',
-        'alt' => 'Modern apartment with a bright open living area',
-    ],
-    [
-        'title' => 'Room to build in a growing town',
-        'city' => 'Kribi',
-        'city_label' => 'Kribi',
-        'neighborhood' => 'Near the town centre, South Region',
-        'transaction' => 'buy',
-        'transaction_label' => 'For sale',
-        'property' => 'land',
-        'price' => 22000000,
-        'size' => '800 m2',
-        'certificate' => 'Certificate verified',
-        'image' => 'photo-1510798831971-661eb04b3739',
-        'alt' => 'A house set among trees on a spacious plot',
-    ],
-    [
-        'title' => 'A family home with garden space',
-        'city' => 'Yaounde',
-        'city_label' => 'Yaounde',
-        'neighborhood' => 'Odza, Centre Region',
-        'transaction' => 'lease',
-        'transaction_label' => 'For lease',
-        'property' => 'apartment',
-        'price' => 425000,
-        'size' => '2 bedrooms',
-        'certificate' => 'Title documents verified',
-        'image' => 'photo-1600566753086-00f18fb6b3ea',
-        'alt' => 'A modern home with a garden and wide windows',
-    ],
-    [
-        'title' => 'Elevated land with a city outlook',
-        'city' => 'Douala',
-        'city_label' => 'Douala',
-        'neighborhood' => 'Yassa, Littoral Region',
-        'transaction' => 'buy',
-        'transaction_label' => 'For sale',
-        'property' => 'land',
-        'price' => 31500000,
-        'size' => '1,000 m2',
-        'certificate' => 'Certificate under review',
-        'image' => 'photo-1500382017468-9049fed747ef',
-        'alt' => 'A broad green plot with a clear view',
-    ],
-    [
-        'title' => 'A calm apartment close to the beach',
-        'city' => 'Kribi',
-        'city_label' => 'Kribi',
-        'neighborhood' => 'Ngoye, South Region',
-        'transaction' => 'lease',
-        'transaction_label' => 'For lease',
-        'property' => 'apartment',
-        'price' => 300000,
-        'size' => '2 bedrooms',
-        'certificate' => 'Title documents verified',
-        'image' => 'photo-1600607687920-4e2a09cf159d',
-        'alt' => 'A welcoming contemporary living space',
-    ],
-];
+$listings = require __DIR__ . '/data/listings.php';
 
 $filterOptions = [
     'transaction' => ['buy', 'lease'],
@@ -328,7 +243,7 @@ function h(string $value): string
     <div class="footer-bottom"><span>© <?= date('Y') ?> Lumda Chris Cameroon</span><span>Au Cameroun, votre terrain, notre priorité.</span></div>
 </footer>
 
-<div class="chatbot" id="property-chatbot" data-endpoint="chatbot.php" data-csrf="<?= h($_SESSION['chatbot_csrf_token']) ?>">
+<div class="chatbot" id="property-chatbot" data-endpoint="chatbot.php" data-csrf="<?= h($_SESSION['chatbot_csrf_token']) ?>" data-suggestions-en="<?= h(json_encode(['Show me available land', 'How do I verify a land title?', 'Explain the buying process'], JSON_UNESCAPED_UNICODE)) ?>" data-suggestions-fr="<?= h(json_encode(['Montrez-moi les terrains disponibles', 'Comment vérifier un titre foncier ?', 'Expliquez le processus d’achat'], JSON_UNESCAPED_UNICODE)) ?>">
     <section class="chatbot-panel" id="chatbot-panel" role="dialog" aria-label="Cameroon property consultant" aria-modal="false" hidden>
         <header class="chatbot-header">
             <div class="chatbot-identity">
@@ -351,8 +266,10 @@ function h(string $value): string
         </div>
 
         <div class="chatbot-messages" data-chat-messages role="log" aria-live="polite" aria-relevant="additions">
-            <article class="chat-message chat-message-bot"><p>Hello, I can share general information about land titles, leases, due diligence, and property disputes in Cameroon. I’m not a substitute for a notary or lawyer. How can I help?</p></article>
+            <article class="chat-message chat-message-bot"><p>Hello, I’m Lumda Chris. Ask me about available land and apartments, prices, due diligence, land titles, leases or disputes — in English or French. I’m not a substitute for a notary or lawyer.</p></article>
         </div>
+
+        <div class="chatbot-suggestions" data-chat-suggestions aria-label="Suggested questions"></div>
 
         <p class="chatbot-status" data-chat-status role="status" aria-live="polite"></p>
         <form class="chatbot-compose" data-chat-form>

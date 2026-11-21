@@ -1578,7 +1578,7 @@ select {
     height: min(590px, calc(100dvh - 108px));
     min-height: 380px;
     display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
     overflow: hidden;
     border: 1px solid rgba(24, 59, 49, .16);
     background: var(--white);
@@ -1767,6 +1767,38 @@ select {
     background-color: #fbfbf7;
     background-image: radial-gradient(rgba(24, 59, 49, .07) .65px, transparent .65px);
     background-size: 15px 15px;
+}
+
+.chatbot-suggestions {
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-top: 1px solid var(--line);
+    background: #fbfbf7;
+}
+
+.chatbot-suggestions[hidden] {
+    display: none;
+}
+
+.chat-suggestion {
+    padding: 6px 10px;
+    border: 1px solid rgba(24, 59, 49, .28);
+    border-radius: 14px;
+    color: var(--forest);
+    background: var(--white);
+    font: 9.5px/1.35 var(--sans);
+    text-align: left;
+    cursor: pointer;
+    transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.chat-suggestion:hover,
+.chat-suggestion:focus-visible {
+    border-color: var(--forest);
+    color: var(--white);
+    background: var(--forest);
 }
 
 .chat-message {

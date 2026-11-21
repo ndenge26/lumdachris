@@ -16,12 +16,44 @@
     const status = chatbot.querySelector('[data-chat-status]');
     const speakerToggle = chatbot.querySelector('[data-chat-speaker]');
     const languageSelect = chatbot.querySelector('[data-chat-language]');
+    const suggestions = chatbot.querySelector('[data-chat-suggestions]');
     const endpoint = chatbot.dataset.endpoint;
     const csrfToken = chatbot.dataset.csrf;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const speechAvailable = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    const starterSuggestions = {
+        en: parseSuggestions(chatbot.dataset.suggestionsEn),
+        fr: parseSuggestions(chatbot.dataset.suggestionsFr),
+    };
     let isSending = false;
     let recognition = null;
+
+    // Suggested questions come from the server, localized, and are rendered as
+    // buttons so a visitor can explore without typing.
+    function parseSuggestions(value) {
+        try {
+            const parsed = JSON.parse(value || '[]');
+            return Array.isArray(parsed)
+                ? parsed.filter((item) => typeof item === 'string' && item.trim() !== '')
+                : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function renderSuggestions(items) {
+        suggestions.innerHTML = '';
+        const list = (Array.isArray(items) ? items : []).slice(0, 3);
+        list.forEach((text) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'chat-suggestion';
+            button.textContent = text;
+            button.addEventListener('click', () => sendMessage(text));
+            suggestions.appendChild(button);
+        });
+        suggestions.hidden = list.length === 0;
+    }
 
     // Render all user and server text as text, never as HTML markup.
     function addMessage(role, text, pending = false) {
@@ -80,6 +112,7 @@
         sendButton.disabled = true;
         microphoneButton.disabled = true;
         input.disabled = true;
+        renderSuggestions([]);
         addMessage('user', message);
         const pendingMessage = addMessage('bot', languageSelect.value === 'fr' ? 'Un instant…' : 'One moment…', true);
         setStatus('');
@@ -102,10 +135,12 @@
             }
 
             addMessage('bot', payload.reply);
+            renderSuggestions(payload.suggestions);
             speakReply(payload.reply, payload.language || languageSelect.value);
         } catch (error) {
             pendingMessage.remove();
             addMessage('bot', error.message || 'I could not send that message. Please try again.');
+            renderSuggestions(starterSuggestions[languageSelect.value] || []);
         } finally {
             isSending = false;
             sendButton.disabled = false;
@@ -200,11 +235,17 @@
         }
     });
 
-    // Keep recognition locale and prompt text aligned with the selected response language.
+    // Keep recognition locale, prompt text and starter suggestions aligned with
+    // the selected response language.
     languageSelect.addEventListener('change', () => {
         input.placeholder = languageSelect.value === 'fr' ? 'Posez une question sur un bien au Cameroun' : 'Ask about property in Cameroon';
+        if (messages.querySelectorAll('.chat-message').length <= 1) {
+            renderSuggestions(starterSuggestions[languageSelect.value] || []);
+        }
         if (recognition) {
             recognition.stop();
         }
     });
+
+    renderSuggestions(starterSuggestions[languageSelect.value] || []);
 })();
