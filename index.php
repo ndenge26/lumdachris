@@ -76,6 +76,13 @@ function h(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
+
+$heroImages = glob(__DIR__ . '/images/*.{jpg,jpeg,png,webp}', GLOB_BRACE);
+if ($heroImages === false) {
+    $heroImages = [];
+}
+natsort($heroImages);
+$heroImages = array_values($heroImages);
 ?>
 <!doctype html>
 <html lang="en">
@@ -92,6 +99,7 @@ function h(string $value): string
     <link rel="stylesheet" href="style.css">
     <script src="listings.js" defer></script>
     <script src="chatbot.js" defer></script>
+    <script src="hero-carousel.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -119,8 +127,34 @@ function h(string $value): string
                 <p class="hero-description">Find land and homes across Cameroon, with the details you need to move forward clearly.</p>
                 <a class="text-link" href="#listings">Explore featured places <span aria-hidden="true">↓</span></a>
             </div>
-            <figure class="hero-photo">
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=85" alt="Contemporary home framed by tropical greenery">
+            <figure class="hero-photo hero-carousel" data-hero-carousel aria-label="Featured property photos">
+                <?php foreach ($heroImages as $index => $imagePath): ?>
+                    <img
+                        class="hero-carousel-slide<?= $index === 0 ? ' is-active' : '' ?>"
+                        src="<?= h('images/' . basename($imagePath)) ?>"
+                        alt="Featured property photo <?= (int) ($index + 1) ?>"
+                        aria-hidden="<?= $index === 0 ? 'false' : 'true' ?>"
+                        <?= $index === 0 ? '' : 'inert' ?>
+                    >
+                <?php endforeach; ?>
+                <?php if (count($heroImages) > 1): ?>
+                    <button class="hero-carousel-arrow hero-carousel-previous" type="button" aria-label="Show previous image">
+                        <span aria-hidden="true">‹</span>
+                    </button>
+                    <button class="hero-carousel-arrow hero-carousel-next" type="button" aria-label="Show next image">
+                        <span aria-hidden="true">›</span>
+                    </button>
+                    <div class="hero-carousel-dots" role="group" aria-label="Choose a property photo">
+                        <?php foreach ($heroImages as $index => $imagePath): ?>
+                            <button
+                                class="hero-carousel-dot<?= $index === 0 ? ' is-active' : '' ?>"
+                                type="button"
+                                aria-label="Show image <?= (int) ($index + 1) ?>"
+                                aria-current="<?= $index === 0 ? 'true' : 'false' ?>"
+                            ></button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
                 <figcaption><span class="photo-pin" aria-hidden="true"></span> Find a place that feels like yours</figcaption>
             </figure>
             <div class="hero-index" aria-hidden="true"><span>01</span><span class="index-rule"></span><span>03</span></div>
