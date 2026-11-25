@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require __DIR__ . '/i18n.php';
 
 require __DIR__ . '/admin-common.php';
 require __DIR__ . '/config.php';
@@ -426,12 +427,12 @@ if ($error !== '' && $_SERVER['REQUEST_METHOD'] === 'POST' && adminPostString('a
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= $currentLanguage ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Agent management | LumidaChris</title>
+    <title><?= h($currentLanguage === 'fr' ? 'Gestion des agents' : 'Agent management') ?> | LumidaChris</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="admin.css">
 </head>
@@ -441,40 +442,42 @@ if ($error !== '' && $_SERVER['REQUEST_METHOD'] === 'POST' && adminPostString('a
         <a class="admin-brand" href="index.php"><img src="logo.png" alt=""> <span><strong>LUMIDACHRIS</strong><small>AGENT MANAGEMENT</small></span></a>
         <section class="login-card">
             <p class="eyebrow">Secure workspace</p>
-            <h1>Agent sign in</h1>
-            <p>Use an agent account provisioned in the site database.</p>
+            <?php require __DIR__ . '/language-switch.php'; ?>
+            <h1><?= h(t('agent_sign_in')) ?></h1>
+            <p><?= h($currentLanguage === 'fr' ? 'Utilisez un compte agent créé dans la base du site.' : 'Use an agent account provisioned in the site database.') ?></p>
             <?php if ($success !== ''): ?><p class="notice notice-success" role="status"><?= adminEscape($success) ?></p><?php endif; ?>
             <?php if ($error !== ''): ?><p class="notice notice-error" role="alert"><?= adminEscape($error) ?></p><?php endif; ?>
             <form method="post" action="admin.php">
                 <input type="hidden" name="csrf_token" value="<?= adminEscape($csrfToken) ?>">
                 <input type="hidden" name="action" value="login">
-                <label>Email address<input name="email" type="email" autocomplete="username" maxlength="254" required></label>
-                <label>Password<input name="password" type="password" autocomplete="current-password" maxlength="4096" required></label>
-                <button class="button button-primary" type="submit">Sign in</button>
+                <label><?= h($currentLanguage === 'fr' ? 'Adresse électronique' : 'Email address') ?><input name="email" type="email" autocomplete="username" maxlength="254" required></label>
+                <label><?= h($currentLanguage === 'fr' ? 'Mot de passe' : 'Password') ?><input name="password" type="password" autocomplete="current-password" maxlength="4096" required></label>
+                <button class="button button-primary" type="submit"><?= h($currentLanguage === 'fr' ? 'Se connecter' : 'Sign in') ?></button>
             </form>
-            <a class="return-link" href="index.php">← Return to the website</a>
+            <a class="return-link" href="index.php?lang=<?= $currentLanguage ?>">← <?= h($currentLanguage === 'fr' ? 'Retour au site' : 'Return to the website') ?></a>
         </section>
     </main>
 <?php else: ?>
     <header class="admin-header">
         <a class="admin-brand" href="admin.php"><img src="logo.png" alt=""><span><strong>LUMIDACHRIS</strong><small>AGENT MANAGEMENT</small></span></a>
+        <?php require __DIR__ . '/language-switch.php'; ?>
         <div class="agent-session"><span><?= adminEscape((string) $agent['full_name']) ?></span>
             <form method="post" action="admin.php">
                 <input type="hidden" name="csrf_token" value="<?= adminEscape($csrfToken) ?>">
                 <input type="hidden" name="action" value="logout">
-                <button class="button button-quiet" type="submit">Sign out</button>
+                <button class="button button-quiet" type="submit"><?= h($currentLanguage === 'fr' ? 'Se déconnecter' : 'Sign out') ?></button>
             </form>
         </div>
     </header>
     <div class="admin-layout">
         <aside class="admin-sidebar">
-            <p>WORKSPACE</p>
-            <a href="#overview">Overview</a><a href="#listings">Properties</a><a href="#requests">Client requests</a><a href="#assistant-leads">Assistant enquiries</a>
-            <a class="site-link" href="index.php">View public website ↗</a>
+            <p><?= h($currentLanguage === 'fr' ? 'ESPACE DE TRAVAIL' : 'WORKSPACE') ?></p>
+            <a href="#overview"><?= h($currentLanguage === 'fr' ? 'Vue d’ensemble' : 'Overview') ?></a><a href="#listings"><?= h($currentLanguage === 'fr' ? 'Biens' : 'Properties') ?></a><a href="#requests"><?= h($currentLanguage === 'fr' ? 'Demandes clients' : 'Client requests') ?></a><a href="#assistant-leads"><?= h($currentLanguage === 'fr' ? 'Demandes de l’assistant' : 'Assistant enquiries') ?></a>
+            <a class="site-link" href="index.php?lang=<?= $currentLanguage ?>"><?= h($currentLanguage === 'fr' ? 'Voir le site public' : 'View public website') ?> ↗</a>
         </aside>
         <main class="admin-main">
             <section id="overview" class="admin-intro">
-                <div><p class="eyebrow">Agent workspace</p><h1>Property management</h1><p>Keep listings, document reviews, and client follow-ups in one place.</p></div>
+                <div><p class="eyebrow"><?= h($currentLanguage === 'fr' ? 'Espace agent' : 'Agent workspace') ?></p><h1><?= h($currentLanguage === 'fr' ? 'Gestion immobilière' : 'Property management') ?></h1><p><?= h($currentLanguage === 'fr' ? 'Gérez les annonces, les vérifications de documents et le suivi des clients.' : 'Keep listings, document reviews, and client follow-ups in one place.') ?></p></div>
             </section>
             <?php if ($success !== ''): ?><p class="notice notice-success" role="status"><?= adminEscape($success) ?></p><?php endif; ?>
             <?php if ($error !== ''): ?><p class="notice notice-error" role="alert"><?= adminEscape($error) ?></p><?php endif; ?>

@@ -116,6 +116,34 @@ select {
     transition: color .2s ease;
 }
 
+.language-switcher {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    border: 1px solid rgba(24, 59, 49, .18);
+    background: var(--white);
+}
+
+.language-switcher a {
+    min-width: 38px;
+    padding: 9px 8px;
+    color: var(--forest);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+}
+
+.language-switcher a + a {
+    border-left: 1px solid rgba(24, 59, 49, .12);
+}
+
+.language-switcher a.is-active {
+    color: var(--white);
+    background: var(--forest);
+}
+
 .primary-nav a {
     color: #49544c;
 }

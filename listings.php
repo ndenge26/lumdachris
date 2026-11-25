@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require __DIR__ . '/i18n.php';
 
 function escapeListingValue(string $value): string
 {
@@ -24,12 +25,12 @@ try {
 }
 ?>
 <section class="database-listings" aria-labelledby="database-listings-title">
-	<h2 id="database-listings-title">Available properties</h2>
+	<h2 id="database-listings-title"><?= h($currentLanguage === 'fr' ? 'Biens disponibles' : 'Available properties') ?></h2>
 
 	<?php if ($listingLoadFailed): ?>
-		<p role="status">Listings are temporarily unavailable. Please try again later.</p>
+		<p role="status"><?= h($currentLanguage === 'fr' ? 'Les annonces sont temporairement indisponibles. Veuillez réessayer plus tard.' : 'Listings are temporarily unavailable. Please try again later.') ?></p>
 	<?php elseif ($listings === []): ?>
-		<p>No active listings are available right now.</p>
+		<p><?= h($currentLanguage === 'fr' ? 'Aucune annonce active n’est disponible actuellement.' : 'No active listings are available right now.') ?></p>
 	<?php else: ?>
 		<div class="database-listing-grid">
 			<?php foreach ($listings as $listing): ?>

@@ -19,6 +19,7 @@
     const suggestions = chatbot.querySelector('[data-chat-suggestions]');
     const endpoint = chatbot.dataset.endpoint;
     const csrfToken = chatbot.dataset.csrf;
+    languageSelect.value = chatbot.dataset.language || 'en';
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const speechAvailable = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
     const starterSuggestions = {

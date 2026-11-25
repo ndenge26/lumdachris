@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require __DIR__ . '/i18n.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     $sessionIsSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
@@ -28,10 +29,10 @@ try {
     foreach ($listingQuery->fetchAll() as $record) {
         $isRental = in_array($record['listing_type'], ['lease', 'tenancy'], true);
         $certificateLabels = [
-            'verified' => 'Certificate verified',
-            'pending' => 'Certificate under review',
-            'rejected' => 'Certificate not verified',
-            'not_submitted' => 'Certificate not submitted',
+            'verified' => t('certificate_verified'),
+            'pending' => t('certificate_pending'),
+            'rejected' => t('certificate_rejected'),
+            'not_submitted' => t('certificate_not_submitted'),
         ];
         $location = trim((string) $record['city'] . (!empty($record['location_details']) ? ', ' . $record['location_details'] : ''));
         $bedrooms = $record['bedrooms'] === null ? null : (int) $record['bedrooms'];
@@ -40,13 +41,15 @@ try {
             'city' => (string) $record['city'],
             'neighborhood' => $location,
             'transaction' => $isRental ? 'lease' : 'buy',
-            'transaction_label' => $isRental ? 'For rent' : 'For sale',
+            'transaction_label' => $isRental ? t('for_rent') : t('for_sale'),
             'property' => (string) $record['property_type'],
             'price' => (int) $record['price_xaf'],
             'size' => $record['property_type'] === 'land'
                 ? number_format((float) $record['dimensions_sqm'], 2, '.', ',') . ' m²'
                 : ($bedrooms === null ? number_format((float) $record['dimensions_sqm'], 2, '.', ',') . ' m²' : $bedrooms . ' bedrooms'),
-            'certificate' => $certificateLabels[$record['certificate_status']] ?? 'Certificate not submitted',
+            'certificate' => $certificateLabels[$record['certificate_status']] ?? t('certificate_not_submitted'),
+            'certificate_verified' => $record['certificate_status'] === 'verified',
+            'certificate_pending' => $record['certificate_status'] === 'pending',
             'image' => $record['image_id'] !== null ? 'listing-image.php?id=' . (int) $record['image_id'] : '',
             'alt' => (string) $record['title'],
             'description' => (string) ($record['description'] ?? ''),
@@ -72,11 +75,6 @@ foreach ($filterOptions as $name => $allowedValues) {
 
 $filteredListings = $listings;
 
-function h(string $value): string
-{
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
-
 $heroImages = glob(__DIR__ . '/images/*.{jpg,jpeg,png,webp}', GLOB_BRACE);
 if ($heroImages === false) {
     $heroImages = [];
@@ -85,13 +83,13 @@ natsort($heroImages);
 $heroImages = array_values($heroImages);
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= $currentLanguage ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#183b31">
-    <meta name="description" content="Find land and homes across Cameroon, with clear listing details and property due diligence support.">
-    <title>LumidaChris — Terrains au Cameroun</title>
+    <meta name="description" content="<?= h(t('meta_description')) ?>">
+    <title>LumidaChris — <?= h($currentLanguage === 'fr' ? 'Terrains au Cameroun' : 'Land in Cameroon') ?></title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,17 +102,18 @@ $heroImages = array_values($heroImages);
 <body>
 <header class="site-header">
     <div class="header-inner">
-        <a class="brand" href="index.php" aria-label="Lumda Chris home">
+        <a class="brand" href="index.php" aria-label="<?= h(t('home_aria')) ?>">
             <img class="brand-logo" src="logo.png" alt="">
             <span class="brand-name"><strong>LUMIDACHRIS</strong><small>Achat et vente de terrains</small></span>
         </a>
-        <nav class="primary-nav" aria-label="Main navigation">
-            <a href="?transaction=buy&amp;property=land#listings">Buy / Sell Land</a>
-            <a href="?transaction=lease#listings">Leases &amp; Tenancy</a>
-            <a href="#due-diligence">Due Diligence</a>
-            <a href="#dispute-resolution">Dispute Resolution</a>
+        <nav class="primary-nav" aria-label="<?= h(t('main_navigation')) ?>">
+            <a href="?lang=<?= $currentLanguage ?>&amp;transaction=buy&amp;property=land#listings"><?= h(t('buy_sell_land')) ?></a>
+            <a href="?lang=<?= $currentLanguage ?>&amp;transaction=lease#listings"><?= h(t('leases_tenancy')) ?></a>
+            <a href="#due-diligence"><?= h(t('due_diligence')) ?></a>
+            <a href="#dispute-resolution"><?= h(t('dispute_resolution')) ?></a>
         </nav>
-        <a class="header-action" href="#listings">Explore properties <span aria-hidden="true">↗</span></a>
+        <?php require __DIR__ . '/language-switch.php'; ?>
+        <a class="header-action" href="#listings"><?= h(t('explore_properties')) ?> <span aria-hidden="true">↗</span></a>
     </div>
 </header>
 
@@ -122,10 +121,10 @@ $heroImages = array_values($heroImages);
     <section class="hero" aria-labelledby="hero-title">
         <div class="hero-inner">
             <div class="hero-copy">
-                <p class="eyebrow"><span class="eyebrow-line"></span> A better way to invest your money</p>
-                <h1 id="hero-title">A place to put down <em>roots.</em></h1>
-                <p class="hero-description">Find land and homes across Cameroon, with the details you need to move forward clearly.</p>
-                <a class="text-link" href="#listings">Explore featured places <span aria-hidden="true">↓</span></a>
+                <p class="eyebrow"><span class="eyebrow-line"></span> <?= h(t('hero_eyebrow')) ?></p>
+                <h1 id="hero-title"><?= $currentLanguage === 'fr' ? 'Un endroit pour prendre <em>racine.</em>' : 'A place to put down <em>roots.</em>' ?></h1>
+                <p class="hero-description"><?= h(t('hero_description')) ?></p>
+                <a class="text-link" href="#listings"><?= h(t('explore_featured')) ?> <span aria-hidden="true">↓</span></a>
             </div>
             <figure class="hero-photo hero-carousel" data-hero-carousel aria-label="Featured property photos">
                 <?php foreach ($heroImages as $index => $imagePath): ?>
@@ -162,21 +161,22 @@ $heroImages = array_values($heroImages);
         <div class="hero-bottom" aria-hidden="true"><span>CAMEROON</span><span>4° 03′ N &nbsp; 9° 42′ E</span></div>
     </section>
 
-    <section class="search-section" aria-label="Search properties">
+    <section class="search-section" aria-label="<?= h(t('search_properties')) ?>">
         <form class="search-form" action="index.php" method="get">
+            <input type="hidden" name="lang" value="<?= $currentLanguage ?>">
             <label class="search-field">
-                <span class="field-label">I want to</span>
-                <select name="transaction" aria-label="Transaction type">
-                    <option value="">Buy or lease</option>
-                    <option value="buy" <?= $selected['transaction'] === 'buy' ? 'selected' : '' ?>>Buy</option>
-                    <option value="lease" <?= $selected['transaction'] === 'lease' ? 'selected' : '' ?>>Lease</option>
+                <span class="field-label"><?= h(t('i_want_to')) ?></span>
+                <select name="transaction" aria-label="<?= h(t('transaction')) ?>">
+                    <option value=""><?= h(t('buy_or_lease')) ?></option>
+                    <option value="buy" <?= $selected['transaction'] === 'buy' ? 'selected' : '' ?>><?= h(t('buy')) ?></option>
+                    <option value="lease" <?= $selected['transaction'] === 'lease' ? 'selected' : '' ?>><?= h(t('lease')) ?></option>
                 </select>
             </label>
             <span class="field-divider" aria-hidden="true"></span>
             <label class="search-field">
-                <span class="field-label">In and around</span>
-                <select name="location" aria-label="Location">
-                    <option value="">Any location</option>
+                <span class="field-label"><?= h(t('in_around')) ?></span>
+                <select name="location" aria-label="<?= h(t('location')) ?>">
+                    <option value=""><?= h(t('any_location')) ?></option>
                     <?php foreach ($availableCities as $city): ?>
                         <option value="<?= h($city) ?>" <?= $selected['location'] === $city ? 'selected' : '' ?>><?= h($city) ?></option>
                     <?php endforeach; ?>
@@ -184,66 +184,66 @@ $heroImages = array_values($heroImages);
             </label>
             <span class="field-divider" aria-hidden="true"></span>
             <label class="search-field">
-                <span class="field-label">Property type</span>
-                <select name="property" aria-label="Property type">
-                    <option value="">Land, house or apartment</option>
-                    <option value="land" <?= $selected['property'] === 'land' ? 'selected' : '' ?>>Land</option>
-                    <option value="house" <?= $selected['property'] === 'house' ? 'selected' : '' ?>>House</option>
-                    <option value="apartment" <?= $selected['property'] === 'apartment' ? 'selected' : '' ?>>Apartment</option>
+                <span class="field-label"><?= h(t('property_type')) ?></span>
+                <select name="property" aria-label="<?= h(t('property_type')) ?>">
+                    <option value=""><?= h(t('land_house_apartment')) ?></option>
+                    <option value="land" <?= $selected['property'] === 'land' ? 'selected' : '' ?>><?= h(t('land')) ?></option>
+                    <option value="house" <?= $selected['property'] === 'house' ? 'selected' : '' ?>><?= h(t('house')) ?></option>
+                    <option value="apartment" <?= $selected['property'] === 'apartment' ? 'selected' : '' ?>><?= h(t('apartment')) ?></option>
                 </select>
             </label>
-            <button class="search-button" type="submit"><span class="search-icon" aria-hidden="true"></span> Find a place</button>
+            <button class="search-button" type="submit"><span class="search-icon" aria-hidden="true"></span> <?= h(t('find_place')) ?></button>
         </form>
     </section>
 
     <section class="listings-section" id="listings" aria-labelledby="listings-title">
         <div class="section-heading">
             <div>
-                <p class="eyebrow eyebrow-dark"><span class="eyebrow-line"></span> A considered collection</p>
-                <h2 id="listings-title">Places worth <em>a closer look.</em></h2>
+                <p class="eyebrow eyebrow-dark"><span class="eyebrow-line"></span> <?= h(t('collection_eyebrow')) ?></p>
+                <h2 id="listings-title"><?= $currentLanguage === 'fr' ? 'Des biens qui méritent <em>votre attention.</em>' : 'Places worth <em>a closer look.</em>' ?></h2>
             </div>
-            <p class="section-note">A few good places to begin. Each listing includes clear information on size, price, and documentation.</p>
+            <p class="section-note"><?= h(t('section_note')) ?></p>
         </div>
 
         <div class="listing-results-layout">
-            <form class="listing-sidebar" id="listing-filters" aria-label="Filter properties">
+            <form class="listing-sidebar" id="listing-filters" aria-label="<?= h(t('filter_properties')) ?>">
                 <div class="sidebar-heading">
-                    <h3>Refine your search</h3>
-                    <button class="clear-filters" type="button" data-clear-filters>Clear</button>
+                    <h3><?= h(t('refine_search')) ?></h3>
+                    <button class="clear-filters" type="button" data-clear-filters><?= h(t('clear')) ?></button>
                 </div>
                 <p class="filter-result-count" id="filter-result-count" aria-live="polite"></p>
                 <label class="sidebar-field">
-                    <span>Transaction</span>
+                    <span><?= h(t('transaction')) ?></span>
                     <select data-filter="type">
-                        <option value="">Buy or lease</option>
-                        <option value="sale" <?= $selected['transaction'] === 'buy' ? 'selected' : '' ?>>For sale</option>
-                        <option value="lease" <?= $selected['transaction'] === 'lease' ? 'selected' : '' ?>>For lease</option>
+                        <option value=""><?= h(t('buy_or_lease')) ?></option>
+                        <option value="sale" <?= $selected['transaction'] === 'buy' ? 'selected' : '' ?>><?= h(t('for_sale')) ?></option>
+                        <option value="lease" <?= $selected['transaction'] === 'lease' ? 'selected' : '' ?>><?= h(t('for_lease')) ?></option>
                     </select>
                 </label>
                 <label class="sidebar-field">
-                    <span>Location</span>
+                    <span><?= h(t('location')) ?></span>
                     <select data-filter="city">
-                        <option value="">All locations</option>
+                        <option value=""><?= h(t('all_locations')) ?></option>
                         <?php foreach ($availableCities as $city): ?>
                             <option value="<?= h($city) ?>" <?= $selected['location'] === $city ? 'selected' : '' ?>><?= h($city) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
                 <label class="sidebar-field">
-                    <span>Property type</span>
+                    <span><?= h(t('property_type')) ?></span>
                     <select data-filter="category">
-                        <option value="">All property types</option>
-                        <option value="land" <?= $selected['property'] === 'land' ? 'selected' : '' ?>>Land</option>
-                        <option value="house" <?= $selected['property'] === 'house' ? 'selected' : '' ?>>House</option>
-                        <option value="apartment" <?= $selected['property'] === 'apartment' ? 'selected' : '' ?>>Apartment</option>
+                        <option value=""><?= h(t('all_property_types')) ?></option>
+                        <option value="land" <?= $selected['property'] === 'land' ? 'selected' : '' ?>><?= h(t('land')) ?></option>
+                        <option value="house" <?= $selected['property'] === 'house' ? 'selected' : '' ?>><?= h(t('house')) ?></option>
+                        <option value="apartment" <?= $selected['property'] === 'apartment' ? 'selected' : '' ?>><?= h(t('apartment')) ?></option>
                     </select>
                 </label>
                 <label class="sidebar-field">
-                    <span>Land certificate</span>
+                    <span><?= h(t('certificate_status')) ?></span>
                     <select data-filter="certificate">
-                        <option value="">Any status</option>
-                        <option value="true">Verified documents</option>
-                        <option value="false">Not verified</option>
+                        <option value=""><?= h(t('any_status')) ?></option>
+                        <option value="true"><?= h(t('verified_documents')) ?></option>
+                        <option value="false"><?= h(t('not_verified')) ?></option>
                     </select>
                 </label>
             </form>
@@ -251,8 +251,8 @@ $heroImages = array_values($heroImages);
             <div class="listing-results">
             <div class="listing-grid">
                 <?php foreach ($filteredListings as $index => $listing): ?>
-                    <article class="listing-card" data-listing data-type="<?= $listing['transaction'] === 'buy' ? 'sale' : 'lease' ?>" data-city="<?= h($listing['city']) ?>" data-category="<?= h($listing['property']) ?>" data-certificate="<?= in_array($listing['certificate'], ['Certificate verified', 'Title documents verified'], true) ? 'true' : 'false' ?>" style="--card-index: <?= (int) $index ?>">
-                        <a class="listing-image" href="#due-diligence" aria-label="Learn more about <?= h($listing['title']) ?>">
+                    <article class="listing-card" data-listing data-type="<?= $listing['transaction'] === 'buy' ? 'sale' : 'lease' ?>" data-city="<?= h($listing['city']) ?>" data-category="<?= h($listing['property']) ?>" data-certificate="<?= $listing['certificate_verified'] ? 'true' : 'false' ?>" style="--card-index: <?= (int) $index ?>">
+                        <a class="listing-image" href="#due-diligence" aria-label="<?= h(t('learn_more_about')) ?> <?= h($listing['title']) ?>">
                             <img src="<?= $listing['image'] !== '' ? h($listing['image']) : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&amp;fit=crop&amp;w=900&amp;q=80' ?>" alt="<?= h($listing['alt']) ?>" loading="lazy">
                             <span class="listing-tag"><?= h($listing['transaction_label']) ?></span>
                             <span class="listing-arrow" aria-hidden="true">↗</span>
@@ -261,34 +261,34 @@ $heroImages = array_values($heroImages);
                             <div class="listing-location"><span class="location-dot" aria-hidden="true"></span><?= h($listing['neighborhood']) ?></div>
                             <h3><?= h($listing['title']) ?></h3>
                             <?php if ($listing['description'] !== ''): ?><p class="listing-description"><?= h($listing['description']) ?></p><?php endif; ?>
-                            <div class="listing-specs"><span><?= h(ucfirst($listing['property'])) ?></span><span><?= h($listing['size']) ?></span></div>
-                            <div class="certificate <?= $listing['certificate'] === 'Certificate under review' ? 'certificate-review' : '' ?>">
-                                <span class="certificate-icon" aria-hidden="true"><?= $listing['certificate'] === 'Certificate under review' ? '!' : '✓' ?></span>
+                            <div class="listing-specs"><span><?= h(t($listing['property'])) ?></span><span><?= h($listing['size']) ?></span></div>
+                            <div class="certificate <?= $listing['certificate_pending'] ? 'certificate-review' : '' ?>">
+                                <span class="certificate-icon" aria-hidden="true"><?= $listing['certificate_pending'] ? '!' : '✓' ?></span>
                                 <?= h($listing['certificate']) ?>
                             </div>
-                            <div class="listing-price"><span><?= $listing['transaction'] === 'lease' ? 'Monthly rent' : 'Asking price' ?></span><strong><?= number_format($listing['price'], 0, '.', ',') ?> <small>XAF</small></strong></div>
+                            <div class="listing-price"><span><?= h($listing['transaction'] === 'lease' ? t('monthly_rent') : t('asking_price')) ?></span><strong><?= number_format($listing['price'], 0, '.', ',') ?> <small>XAF</small></strong></div>
                         </div>
                     </article>
                 <?php endforeach; ?>
             </div>
-                <p class="listing-empty" id="listing-empty" hidden>No places match these filters. Try adjusting your selection.</p>
+                <p class="listing-empty" id="listing-empty" hidden><?= h(t('listing_empty')) ?></p>
             </div>
         </div>
-        <p class="sample-note">Availability, prices, and document review status should be confirmed directly before a commitment.</p>
+        <p class="sample-note"><?= h(t('sample_note')) ?></p>
     </section>
 
-    <section class="services-section" aria-label="Property support">
+    <section class="services-section" aria-label="<?= h(t('property_support')) ?>">
         <article class="service-block" id="due-diligence">
-            <span class="service-number">01 / BEFORE YOU COMMIT</span>
-            <h2>Know what you're stepping into.</h2>
-            <p>Request a due diligence review to help verify a property's documents, ownership history, and survey details.</p>
-            <a href="due-diligence.php?request=due-diligence" class="service-link">Ask about due diligence <span aria-hidden="true">↗</span></a>
+            <span class="service-number"><?= h(t('before_commit')) ?></span>
+            <h2><?= h(t('know_heading')) ?></h2>
+            <p><?= h(t('know_text')) ?></p>
+            <a href="due-diligence.php?lang=<?= $currentLanguage ?>&amp;request=due-diligence" class="service-link"><?= h(t('ask_due_diligence')) ?> <span aria-hidden="true">↗</span></a>
         </article>
         <article class="service-block service-block-light" id="dispute-resolution">
-            <span class="service-number">02 / WHEN YOU NEED GUIDANCE</span>
-            <h2>Get the right advice, early.</h2>
-            <p>Speak with a property legal expert about a land matter or a dispute that needs a considered next step.</p>
-            <a href="due-diligence.php?request=dispute" class="service-link">Discuss a property matter <span aria-hidden="true">↗</span></a>
+            <span class="service-number"><?= h(t('need_guidance')) ?></span>
+            <h2><?= h(t('advice_heading')) ?></h2>
+            <p><?= h(t('advice_text')) ?></p>
+            <a href="due-diligence.php?lang=<?= $currentLanguage ?>&amp;request=dispute" class="service-link"><?= h(t('discuss_matter')) ?> <span aria-hidden="true">↗</span></a>
         </article>
     </section>
 </main>
@@ -296,25 +296,25 @@ $heroImages = array_values($heroImages);
 <footer class="site-footer">
     <div class="footer-main">
         <div class="footer-brand-block">
-            <a class="brand brand-footer" href="index.php" aria-label="Lumda Chris home">
+            <a class="brand brand-footer" href="index.php" aria-label="<?= h(t('home_aria')) ?>">
                 <img class="brand-logo" src="logo.png" alt="">
                 <span class="brand-name"><strong>LUMIDACHRIS</strong><small>Achat et vente de terrains</small></span>
             </a>
-            <p>Au Cameroun, votre terrain, notre priorité.</p>
+            <p><?= h(t('footer_tagline')) ?></p>
         </div>
         <div class="footer-links">
-            <h2>Land resources</h2>
-            <a href="https://mindcaf.gov.cm/" target="_blank" rel="noopener noreferrer">MINDCAF official resources <span aria-hidden="true">↗</span></a>
-            <a href="https://mindcaf.gov.cm/" target="_blank" rel="noopener noreferrer">Ministry of State Property, Surveys and Land Tenure <span aria-hidden="true">↗</span></a>
-            <p>Consult MINDCAF and qualified professionals to confirm current requirements and land records.</p>
+            <h2><?= h(t('land_resources')) ?></h2>
+            <a href="https://mindcaf.gov.cm/" target="_blank" rel="noopener noreferrer"><?= h(t('mindcaf_resources')) ?> <span aria-hidden="true">↗</span></a>
+            <a href="https://mindcaf.gov.cm/" target="_blank" rel="noopener noreferrer"><?= h(t('mindcaf_name')) ?> <span aria-hidden="true">↗</span></a>
+            <p><?= h(t('mindcaf_note')) ?></p>
         </div>
         <div class="footer-links footer-nav">
-            <h2>Explore</h2>
-            <a href="?transaction=buy&amp;property=land#listings">Buy / Sell Land</a>
-            <a href="?transaction=lease#listings">Leases &amp; Tenancy</a>
-            <a href="#due-diligence">Due Diligence</a>
-            <a href="#dispute-resolution">Dispute Resolution</a>
-            <a href="admin.php">Agent sign in</a>
+            <h2><?= h(t('explore')) ?></h2>
+            <a href="?lang=<?= $currentLanguage ?>&amp;transaction=buy&amp;property=land#listings"><?= h(t('buy_sell_land')) ?></a>
+            <a href="?lang=<?= $currentLanguage ?>&amp;transaction=lease#listings"><?= h(t('leases_tenancy')) ?></a>
+            <a href="#due-diligence"><?= h(t('due_diligence')) ?></a>
+            <a href="#dispute-resolution"><?= h(t('dispute_resolution')) ?></a>
+            <a href="admin.php?lang=<?= $currentLanguage ?>"><?= h(t('agent_sign_in')) ?></a>
         </div>
     </div>
     <div class="footer-bottom"><span>© <?= date('Y') ?> LumidaChris Cameroon</span><span>Au Cameroun, votre terrain, notre priorité.</span></div>

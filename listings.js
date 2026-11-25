@@ -39,7 +39,12 @@
             }
         });
 
-        resultCount.textContent = `${visibleCount} of ${cards.length} ${cards.length === 1 ? 'place' : 'places'}`;
+        const countTemplate = cards.length === 1
+            ? document.documentElement.lang === 'fr' ? '{visible} sur {total} bien' : '{visible} of {total} place'
+            : document.documentElement.lang === 'fr' ? '{visible} sur {total} biens' : '{visible} of {total} places';
+        resultCount.textContent = countTemplate
+            .replace('{visible}', String(visibleCount))
+            .replace('{total}', String(cards.length));
         emptyState.hidden = visibleCount !== 0;
     }
 
