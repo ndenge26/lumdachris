@@ -91,7 +91,7 @@ $heroImages = array_values($heroImages);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#183b31">
     <meta name="description" content="Find land and homes across Cameroon, with clear listing details and property due diligence support.">
-    <title>Lumda Chris — Terrains au Cameroun</title>
+    <title>LumidaChris — Terrains au Cameroun</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,7 +106,7 @@ $heroImages = array_values($heroImages);
     <div class="header-inner">
         <a class="brand" href="index.php" aria-label="Lumda Chris home">
             <img class="brand-logo" src="logo.png" alt="">
-            <span class="brand-name"><strong>LUMDA CHRIS</strong><small>Achat et vente de terrains</small></span>
+            <span class="brand-name"><strong>LUMIDACHRIS</strong><small>Achat et vente de terrains</small></span>
         </a>
         <nav class="primary-nav" aria-label="Main navigation">
             <a href="?transaction=buy&amp;property=land#listings">Buy / Sell Land</a>
@@ -122,7 +122,7 @@ $heroImages = array_values($heroImages);
     <section class="hero" aria-labelledby="hero-title">
         <div class="hero-inner">
             <div class="hero-copy">
-                <p class="eyebrow"><span class="eyebrow-line"></span> A better way to find your place</p>
+                <p class="eyebrow"><span class="eyebrow-line"></span> A better way to invest your money</p>
                 <h1 id="hero-title">A place to put down <em>roots.</em></h1>
                 <p class="hero-description">Find land and homes across Cameroon, with the details you need to move forward clearly.</p>
                 <a class="text-link" href="#listings">Explore featured places <span aria-hidden="true">↓</span></a>
@@ -298,7 +298,7 @@ $heroImages = array_values($heroImages);
         <div class="footer-brand-block">
             <a class="brand brand-footer" href="index.php" aria-label="Lumda Chris home">
                 <img class="brand-logo" src="logo.png" alt="">
-                <span class="brand-name"><strong>LUMDA CHRIS</strong><small>Achat et vente de terrains</small></span>
+                <span class="brand-name"><strong>LUMIDACHRIS</strong><small>Achat et vente de terrains</small></span>
             </a>
             <p>Au Cameroun, votre terrain, notre priorité.</p>
         </div>
@@ -317,7 +317,7 @@ $heroImages = array_values($heroImages);
             <a href="admin.php">Agent sign in</a>
         </div>
     </div>
-    <div class="footer-bottom"><span>© <?= date('Y') ?> Lumda Chris Cameroon</span><span>Au Cameroun, votre terrain, notre priorité.</span></div>
+    <div class="footer-bottom"><span>© <?= date('Y') ?> LumidaChris Cameroon</span><span>Au Cameroun, votre terrain, notre priorité.</span></div>
 </footer>
 
 <?php require __DIR__ . '/chatbot-widget.php'; ?>

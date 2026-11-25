@@ -19,7 +19,7 @@ $chatbotSuggestionsFr = json_encode(
         <header class="chatbot-header">
             <div class="chatbot-identity">
                 <img class="chatbot-avatar" src="logo.png" alt="">
-                <span><strong>Lumda Chris Property Guide</strong><small>Cameroon · English / Français</small></span>
+                <span><strong>LumidaChris Property Guide</strong><small>Cameroon · English / Français</small></span>
             </div>
             <button class="chat-icon-button chatbot-close" type="button" aria-label="Close chat" data-chat-close>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
@@ -37,7 +37,7 @@ $chatbotSuggestionsFr = json_encode(
         </div>
 
         <div class="chatbot-messages" data-chat-messages role="log" aria-live="polite" aria-relevant="additions">
-            <article class="chat-message chat-message-bot"><p>Hello, I’m Lumda Chris. Ask me about available land and apartments, prices, due diligence, land titles, leases or disputes — in English or French. I’m not a substitute for a notary or lawyer.</p></article>
+            <article class="chat-message chat-message-bot"><p>Hello, I’m LumidaChris. Ask me about available land and apartments, prices, due diligence, land titles, leases or disputes — in English or French. I’m not a substitute for a notary or lawyer.</p></article>
         </div>
 
         <div class="chatbot-suggestions" data-chat-suggestions aria-label="Suggested questions"></div>
@@ -56,6 +56,6 @@ $chatbotSuggestionsFr = json_encode(
 
     <button class="chatbot-launcher" type="button" aria-expanded="false" aria-controls="chatbot-panel" data-chat-open>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.2-.7L4 20l1.4-4.1a7.5 7.5 0 1 1 14.6-4.4Z"/><path d="M8 11h.01M12 11h.01M16 11h.01"/></svg>
-        <span>Ask Lumda Chris</span>
+        <span>Ask LumidaChris</span>
     </button>
 </div>

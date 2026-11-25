@@ -15,8 +15,8 @@ return [
     'greeting' => [
         'keywords' => ['hello' => 5, 'hi' => 4, 'hey' => 4, 'good morning' => 5, 'good afternoon' => 5, 'good evening' => 5, 'bonjour' => 5, 'bonsoir' => 5, 'salut' => 4, 'coucou' => 4],
         'answer' => [
-            'en' => "Hello — I'm Lumda Chris, your property guide for Cameroon. I can help with available land, houses and apartments, due diligence, land titles, leases, prices and land disputes, in English or French. What would you like to know?",
-            'fr' => "Bonjour — je suis Lumda Chris, votre guide immobilier au Cameroun. Je peux vous aider sur les terrains, maisons et appartements disponibles, la vérification, les titres fonciers, les baux, les prix et les litiges, en français ou en anglais. Que souhaitez-vous savoir ?",
+            'en' => "Hello — I'm LumidaChris, your property guide for Cameroon. I can help with available land, houses and apartments, due diligence, land titles, leases, prices and land disputes, in English or French. What would you like to know?",
+            'fr' => "Bonjour — je suis LumidaChris, votre guide immobilier au Cameroun. Je peux vous aider sur les terrains, maisons et appartements disponibles, la vérification, les titres fonciers, les baux, les prix et les litiges, en français ou en anglais. Que souhaitez-vous savoir ?",
         ],
         'suggestions' => [
             'en' => ['Show me available land', 'How do I verify a land title?', 'Explain the buying process'],

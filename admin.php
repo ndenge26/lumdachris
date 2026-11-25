@@ -431,14 +431,14 @@ if ($error !== '' && $_SERVER['REQUEST_METHOD'] === 'POST' && adminPostString('a
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Agent management | Lumda Chris</title>
+    <title>Agent management | LumidaChris</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="admin.css">
 </head>
 <body class="admin-page">
 <?php if ($isLogin): ?>
     <main class="login-shell">
-        <a class="admin-brand" href="index.php"><img src="logo.png" alt=""> <span><strong>LUMDA CHRIS</strong><small>AGENT MANAGEMENT</small></span></a>
+        <a class="admin-brand" href="index.php"><img src="logo.png" alt=""> <span><strong>LUMIDACHRIS</strong><small>AGENT MANAGEMENT</small></span></a>
         <section class="login-card">
             <p class="eyebrow">Secure workspace</p>
             <h1>Agent sign in</h1>
@@ -457,7 +457,7 @@ if ($error !== '' && $_SERVER['REQUEST_METHOD'] === 'POST' && adminPostString('a
     </main>
 <?php else: ?>
     <header class="admin-header">
-        <a class="admin-brand" href="admin.php"><img src="logo.png" alt=""><span><strong>LUMDA CHRIS</strong><small>AGENT MANAGEMENT</small></span></a>
+        <a class="admin-brand" href="admin.php"><img src="logo.png" alt=""><span><strong>LUMIDACHRIS</strong><small>AGENT MANAGEMENT</small></span></a>
         <div class="agent-session"><span><?= adminEscape((string) $agent['full_name']) ?></span>
             <form method="post" action="admin.php">
                 <input type="hidden" name="csrf_token" value="<?= adminEscape($csrfToken) ?>">
